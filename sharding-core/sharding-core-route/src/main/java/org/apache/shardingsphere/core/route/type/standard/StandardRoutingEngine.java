@@ -165,7 +165,7 @@ public final class StandardRoutingEngine implements RoutingEngine {
     }
     
     private List<RouteValue> getDatabaseShardingValuesFromHint() {
-        return getRouteValues(HintManager.getDatabaseShardingValues(logicTableName));
+        return getRouteValues(HintManager.isDatabaseShardingOnly() ? HintManager.getDatabaseShardingValues() : HintManager.getDatabaseShardingValues(logicTableName));
     }
     
     private List<RouteValue> getTableShardingValuesFromHint() {
