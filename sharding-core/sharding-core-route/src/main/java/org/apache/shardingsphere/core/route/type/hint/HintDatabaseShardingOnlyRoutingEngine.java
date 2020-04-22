@@ -26,6 +26,8 @@ import org.apache.shardingsphere.core.rule.ShardingRule;
 import org.apache.shardingsphere.core.strategy.route.hint.HintShardingStrategy;
 import org.apache.shardingsphere.core.strategy.route.value.ListRouteValue;
 import org.apache.shardingsphere.core.strategy.route.value.RouteValue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -33,13 +35,14 @@ import java.util.List;
 
 @RequiredArgsConstructor
 public class HintDatabaseShardingOnlyRoutingEngine implements RoutingEngine {
-
+    Logger logger = LoggerFactory.getLogger(HintDatabaseShardingOnlyRoutingEngine.class);
     private final ShardingRule shardingRule;
 
     @Override
     public RoutingResult route() {
         RoutingResult result = new RoutingResult();
         if (HintManager.isDatabaseShardingOnly() && !isRoutingByHint()) {
+            logger.error("Settle DatabaseShardingOnly in HintManager, but can not find default database sharding strategy.");
             return result;
         }
         for (String each : shardingRule.getDefaultDatabaseShardingStrategy()
