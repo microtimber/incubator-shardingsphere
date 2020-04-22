@@ -134,7 +134,9 @@ public final class ShardingRouter {
     }
     
     private boolean isNeedMergeShardingValues(final SQLStatementContext sqlStatementContext) {
-        return sqlStatementContext instanceof SelectSQLStatementContext && ((SelectSQLStatementContext) sqlStatementContext).isContainsSubquery() 
+        return !HintManager.isDatabaseShardingOnly()
+                && sqlStatementContext instanceof SelectSQLStatementContext
+                && ((SelectSQLStatementContext) sqlStatementContext).isContainsSubquery()
                 && !shardingRule.getShardingLogicTableNames(sqlStatementContext.getTablesContext().getTableNames()).isEmpty();
     }
     
@@ -146,9 +148,9 @@ public final class ShardingRouter {
                 return;
             }
         }
-        Preconditions.checkState(!shardingConditions.getConditions().isEmpty(), "Must have sharding column with subquery.");
+        Preconditions.checkState(!HintManager.isDatabaseShardingOnly() && !shardingConditions.getConditions().isEmpty(), "Must have sharding column with subquery.");
         if (shardingConditions.getConditions().size() > 1) {
-            Preconditions.checkState(isSameShardingCondition(shardingConditions), "Sharding value must same with subquery.");
+            Preconditions.checkState(!HintManager.isDatabaseShardingOnly() && isSameShardingCondition(shardingConditions), "Sharding value must same with subquery.");
         }
     }
     
