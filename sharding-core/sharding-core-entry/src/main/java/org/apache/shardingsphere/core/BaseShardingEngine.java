@@ -32,6 +32,8 @@ import org.apache.shardingsphere.core.rule.ShardingRule;
 import org.apache.shardingsphere.encrypt.rewrite.context.EncryptSQLRewriteContextDecorator;
 import org.apache.shardingsphere.sharding.rewrite.context.ShardingSQLRewriteContextDecorator;
 import org.apache.shardingsphere.sharding.rewrite.engine.ShardingSQLRewriteEngine;
+import org.apache.shardingsphere.sql.parser.relation.statement.impl.SelectSQLStatementContext;
+import org.apache.shardingsphere.sql.parser.sql.statement.dml.SelectStatement;
 import org.apache.shardingsphere.underlying.rewrite.context.SQLRewriteContext;
 import org.apache.shardingsphere.underlying.rewrite.engine.SQLRewriteResult;
 
@@ -67,7 +69,11 @@ public abstract class BaseShardingEngine {
         List<Object> clonedParameters = cloneParameters(parameters);
         SQLRouteResult result = executeRoute(sql, clonedParameters);
         result.getRouteUnits().addAll(
-                HintManager.isDatabaseShardingOnly() && !result.getGeneratedKey().isPresent()
+                HintManager.isDatabaseShardingOnly()
+                        && !result.getGeneratedKey().isPresent()
+                        && !(result.getSqlStatementContext() instanceof SelectSQLStatementContext
+                            && ((SelectSQLStatementContext) result.getSqlStatementContext()).getProjectionsContext().getProjections().size()
+                            > ((SelectStatement) result.getSqlStatementContext().getSqlStatement()).getSelectItems().getSelectItems().size())
                         ? convert(sql, clonedParameters, result)
                         : rewriteAndConvert(sql, clonedParameters, result));
         boolean showSQL = shardingProperties.getValue(ShardingPropertiesConstant.SQL_SHOW);
