@@ -17,22 +17,30 @@
 
 package org.apache.shardingsphere.core.route.type.unicast;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import lombok.RequiredArgsConstructor;
+import org.apache.shardingsphere.api.hint.HintManager;
 import org.apache.shardingsphere.core.config.ShardingConfigurationException;
 import org.apache.shardingsphere.core.route.type.RoutingEngine;
 import org.apache.shardingsphere.core.route.type.RoutingResult;
 import org.apache.shardingsphere.core.route.type.RoutingUnit;
 import org.apache.shardingsphere.core.route.type.TableUnit;
 import org.apache.shardingsphere.core.rule.DataNode;
+import org.apache.shardingsphere.core.rule.ShardingDataSourceNames;
 import org.apache.shardingsphere.core.rule.ShardingRule;
 import org.apache.shardingsphere.core.rule.TableRule;
+import org.apache.shardingsphere.core.strategy.route.hint.HintShardingStrategy;
+import org.apache.shardingsphere.core.strategy.route.value.ListRouteValue;
+import org.apache.shardingsphere.core.strategy.route.value.RouteValue;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Unicast routing engine.
@@ -50,7 +58,12 @@ public final class UnicastRoutingEngine implements RoutingEngine {
     @Override
     public RoutingResult route() {
         RoutingResult result = new RoutingResult();
-        if (shardingRule.isAllBroadcastTables(logicTables)) {
+        if (HintManager.isDatabaseShardingOnly() && isRoutingByHint()) {
+            Collection<String> dataSourceNames = shardingRule.getDefaultDatabaseShardingStrategy()
+                    .doSharding(shardingRule.getShardingDataSourceNames().getDataSourceNames(),
+                            getRouteValues(HintManager.getDatabaseShardingValues()));
+            result.getRoutingUnits().add(new RoutingUnit(Lists.newArrayList(dataSourceNames).get(ThreadLocalRandom.current().nextInt(dataSourceNames.size()))));
+        } else if (shardingRule.isAllBroadcastTables(logicTables)) {
             List<TableUnit> tableUnits = new ArrayList<>(logicTables.size());
             for (String each : logicTables) {
                 tableUnits.add(new TableUnit(each, each));
@@ -97,5 +110,13 @@ public final class UnicastRoutingEngine implements RoutingEngine {
             result.getRoutingUnits().add(routingUnit);
         }
         return result;
+    }
+
+    private boolean isRoutingByHint() {
+        return shardingRule.getDefaultDatabaseShardingStrategy() instanceof HintShardingStrategy;
+    }
+
+    private List<RouteValue> getRouteValues(final Collection<Comparable<?>> shardingValue) {
+        return shardingValue.isEmpty() ? Collections.<RouteValue>emptyList() : Collections.<RouteValue>singletonList(new ListRouteValue<>("", "", shardingValue));
     }
 }
