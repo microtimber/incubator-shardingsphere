@@ -35,7 +35,8 @@ import java.util.List;
 
 @RequiredArgsConstructor
 public class HintDatabaseShardingOnlyRoutingEngine implements RoutingEngine {
-    Logger logger = LoggerFactory.getLogger(HintDatabaseShardingOnlyRoutingEngine.class);
+    private Logger logger = LoggerFactory.getLogger(HintDatabaseShardingOnlyRoutingEngine.class);
+    
     private final ShardingRule shardingRule;
 
     @Override
