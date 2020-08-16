@@ -76,13 +76,13 @@ public final class DQLMergeEngine implements MergeEngine {
     }
     
     private MergedResult build(final Map<String, Integer> columnLabelIndexMap) throws SQLException {
-        if (isNeedProcessGroupBy()) {
-            return getGroupByMergedResult(columnLabelIndexMap);
-        }
-        if (isNeedProcessDistinctRow()) {
-            setGroupByForDistinctRow();
-            return getGroupByMergedResult(columnLabelIndexMap);
-        }
+//        if (isNeedProcessGroupBy()) {
+//            return getGroupByMergedResult(columnLabelIndexMap);
+//        }
+//        if (isNeedProcessDistinctRow()) {
+//            setGroupByForDistinctRow();
+//            return getGroupByMergedResult(columnLabelIndexMap);
+//        }
         if (isNeedProcessOrderBy()) {
             return new OrderByStreamMergedResult(queryResults, selectSQLStatementContext.getOrderByContext().getItems());
         }
