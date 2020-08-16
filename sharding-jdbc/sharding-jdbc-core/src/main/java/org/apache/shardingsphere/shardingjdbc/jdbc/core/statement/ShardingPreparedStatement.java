@@ -202,7 +202,7 @@ public final class ShardingPreparedStatement extends AbstractShardingPreparedSta
             Preconditions.checkState(sqlRouteResult.getGeneratedKey().isPresent());
             return new GeneratedKeysResultSet(sqlRouteResult.getGeneratedKey().get().getGeneratedValues().iterator(), generatedKey.get().getColumnName(), this);
         }
-        if (1 == preparedStatementExecutor.getStatements().size()) {
+        if (1 <= preparedStatementExecutor.getStatements().size()) {
             return preparedStatementExecutor.getStatements().iterator().next().getGeneratedKeys();
         }
         return new GeneratedKeysResultSet();
