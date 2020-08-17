@@ -85,7 +85,9 @@ public final class ShardingRouteDecorator implements RouteDecorator<ShardingRule
     }
     
     private boolean isNeedMergeShardingValues(final SQLStatementContext sqlStatementContext, final ShardingRule shardingRule) {
-        return sqlStatementContext instanceof SelectStatementContext && ((SelectStatementContext) sqlStatementContext).isContainsSubquery() 
+        return !HintManager.isDatabaseShardingOnly()
+                && sqlStatementContext instanceof SelectStatementContext 
+                && ((SelectStatementContext) sqlStatementContext).isContainsSubquery() 
                 && !shardingRule.getShardingLogicTableNames(sqlStatementContext.getTablesContext().getTableNames()).isEmpty();
     }
     
@@ -93,13 +95,13 @@ public final class ShardingRouteDecorator implements RouteDecorator<ShardingRule
         for (String each : sqlStatementContext.getTablesContext().getTableNames()) {
             Optional<TableRule> tableRule = shardingRule.findTableRule(each);
             if (tableRule.isPresent() && isRoutingByHint(shardingRule, tableRule.get())
-                    && !HintManager.getDatabaseShardingValues(each).isEmpty() && !HintManager.getTableShardingValues(each).isEmpty()) {
+                    && (HintManager.isDatabaseShardingOnly() || (!HintManager.getDatabaseShardingValues(each).isEmpty() && !HintManager.getTableShardingValues(each).isEmpty()))) {
                 return;
             }
         }
-        Preconditions.checkState(!shardingConditions.getConditions().isEmpty(), "Must have sharding column with subquery.");
+        Preconditions.checkState(!HintManager.isDatabaseShardingOnly() && !shardingConditions.getConditions().isEmpty(), "Must have sharding column with subquery.");
         if (shardingConditions.getConditions().size() > 1) {
-            Preconditions.checkState(isSameShardingCondition(shardingRule, shardingConditions), "Sharding value must same with subquery.");
+            Preconditions.checkState(!HintManager.isDatabaseShardingOnly() && isSameShardingCondition(shardingRule, shardingConditions), "Sharding value must same with subquery.");
         }
     }
     

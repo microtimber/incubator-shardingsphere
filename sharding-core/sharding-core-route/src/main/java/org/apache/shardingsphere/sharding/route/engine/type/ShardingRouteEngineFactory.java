@@ -19,6 +19,8 @@ package org.apache.shardingsphere.sharding.route.engine.type;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shardingsphere.api.hint.HintManager;
 import org.apache.shardingsphere.core.rule.ShardingRule;
 import org.apache.shardingsphere.sharding.route.engine.condition.ShardingConditions;
 import org.apache.shardingsphere.sharding.route.engine.type.broadcast.ShardingDataSourceGroupBroadcastRoutingEngine;
@@ -27,6 +29,7 @@ import org.apache.shardingsphere.sharding.route.engine.type.broadcast.ShardingMa
 import org.apache.shardingsphere.sharding.route.engine.type.broadcast.ShardingTableBroadcastRoutingEngine;
 import org.apache.shardingsphere.sharding.route.engine.type.complex.ShardingComplexRoutingEngine;
 import org.apache.shardingsphere.sharding.route.engine.type.defaultdb.ShardingDefaultDatabaseRoutingEngine;
+import org.apache.shardingsphere.sharding.route.engine.type.hint.HintDatabaseShardingOnlyRoutingEngine;
 import org.apache.shardingsphere.sharding.route.engine.type.ignore.ShardingIgnoreRoutingEngine;
 import org.apache.shardingsphere.sharding.route.engine.type.standard.ShardingStandardRoutingEngine;
 import org.apache.shardingsphere.sharding.route.engine.type.unicast.ShardingUnicastRoutingEngine;
@@ -84,11 +87,18 @@ public final class ShardingRouteEngineFactory {
         if (shardingRule.isAllInDefaultDataSource(tableNames)) {
             return new ShardingDefaultDatabaseRoutingEngine(tableNames);
         }
-        if (shardingRule.isAllBroadcastTables(tableNames)) {
+        if (shardingRule.isAllBroadcastTables(tableNames)
+                && !(sqlStatement instanceof SelectStatement
+                        && HintManager.isDatabaseShardingOnly()
+                        && CollectionUtils.isNotEmpty(HintManager.getDatabaseShardingValues())
+                        && !HintManager.getDatabaseShardingValues().toString().contains(","))) {
             return sqlStatement instanceof SelectStatement ? new ShardingUnicastRoutingEngine(tableNames) : new ShardingDatabaseBroadcastRoutingEngine();
         }
         if (sqlStatementContext.getSqlStatement() instanceof DMLStatement && tableNames.isEmpty() && shardingRule.hasDefaultDataSourceName()) {
             return new ShardingDefaultDatabaseRoutingEngine(tableNames);
+        }
+        if (HintManager.isDatabaseShardingOnly()) {
+            return new HintDatabaseShardingOnlyRoutingEngine(shardingRule);
         }
         if (sqlStatementContext.getSqlStatement() instanceof DMLStatement && shardingConditions.isAlwaysFalse() || tableNames.isEmpty() || !shardingRule.tableRuleExists(tableNames)) {
             return new ShardingUnicastRoutingEngine(tableNames);
