@@ -74,16 +74,16 @@ public final class ShardingDQLResultMerger implements ResultMerger {
     
     private MergedResult build(final List<QueryResult> queryResults, final SelectStatementContext selectStatementContext,
                                final Map<String, Integer> columnLabelIndexMap, final SchemaMetaData schemaMetaData) throws SQLException {
-        if (isNeedProcessGroupBy(selectStatementContext)) {
-            return getGroupByMergedResult(queryResults, selectStatementContext, columnLabelIndexMap, schemaMetaData);
-        }
-        if (isNeedProcessDistinctRow(selectStatementContext)) {
-            setGroupByForDistinctRow(selectStatementContext);
-            return getGroupByMergedResult(queryResults, selectStatementContext, columnLabelIndexMap, schemaMetaData);
-        }
-        if (isNeedProcessOrderBy(selectStatementContext)) {
-            return new OrderByStreamMergedResult(queryResults, selectStatementContext, schemaMetaData);
-        }
+//        if (isNeedProcessGroupBy(selectStatementContext)) {
+//            return getGroupByMergedResult(queryResults, selectStatementContext, columnLabelIndexMap, schemaMetaData);
+//        }
+//        if (isNeedProcessDistinctRow(selectStatementContext)) {
+//            setGroupByForDistinctRow(selectStatementContext);
+//            return getGroupByMergedResult(queryResults, selectStatementContext, columnLabelIndexMap, schemaMetaData);
+//        }
+//        if (isNeedProcessOrderBy(selectStatementContext)) {
+//            return new OrderByStreamMergedResult(queryResults, selectStatementContext, schemaMetaData);
+//        }
         return new IteratorStreamMergedResult(queryResults);
     }
     
