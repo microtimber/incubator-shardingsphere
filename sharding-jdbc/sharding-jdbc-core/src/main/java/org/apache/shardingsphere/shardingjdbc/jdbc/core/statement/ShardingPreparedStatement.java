@@ -196,7 +196,7 @@ public final class ShardingPreparedStatement extends AbstractShardingPreparedSta
         if (preparedStatementExecutor.isReturnGeneratedKeys() && generatedKey.isPresent()) {
             return new GeneratedKeysResultSet(generatedKey.get().getColumnName(), generatedValues.iterator(), this);
         }
-        if (1 == preparedStatementExecutor.getStatements().size()) {
+        if (1 <= preparedStatementExecutor.getStatements().size()) {
             return preparedStatementExecutor.getStatements().iterator().next().getGeneratedKeys();
         }
         return new GeneratedKeysResultSet();
